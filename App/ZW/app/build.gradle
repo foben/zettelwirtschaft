@@ -1,4 +1,5 @@
 apply plugin: 'android'
+apply plugin: 'android-apt'
 
 android {
     compileSdkVersion 19
@@ -18,7 +19,16 @@ android {
     }
 }
 
+apt {
+    arguments {
+        androidManifestFile variant.processResources.manifestFile
+        resourcePackageName "de.mathrandom.zw.app"
+    }
+}
+
 dependencies {
+    apt "org.androidannotations:androidannotations:3.0+"          // add these
+    compile "org.androidannotations:androidannotations-api:3.0+"  // two lines
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:19.+'
 }
