@@ -1,1 +1,1 @@
-# ZettelWirtshaft
+# ZettelWirtschaft
