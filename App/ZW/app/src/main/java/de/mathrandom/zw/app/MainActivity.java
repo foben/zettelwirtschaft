@@ -1,7 +1,6 @@
 package de.mathrandom.zw.app;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -9,22 +8,20 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.view.LayoutInflater;
+import android.support.v4.widget.DrawerLayout;
 import android.view.View;
-import android.view.Window;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
-import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OnActivityResult;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.ViewById;
+import org.androidannotations.annotations.UiThread;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,34 +29,39 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @EActivity(R.layout.main_activity)
-@OptionsMenu(R.menu.main)
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnFinishedUploading {
 
 	public static final int REQUEST_IMAGE_CAPTURE = 1;
 	private static final int SELECT_PICTURE = 2;
-
+	private String[] mNavigationTitles;
+	private DrawerLayout mDrawerLayout;
+	private ListView mDrawerList;
 	@Bean
 	NetworkManager networkManager;
-
 	WebView webView;
 
 
 	@AfterViews
 	public void setWebView() {
-		//LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		//View newTagView = inflater.inflate(R.layout.main_activity, null);
+		mNavigationTitles = getResources().getStringArray(R.array.nav_drawer_items);
+		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		mDrawerList = (ListView) findViewById(R.id.list_slidermenu);
+		mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+														R.layout.drawer_list_item, mNavigationTitles));
+		// Set the list's click listener
+		mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+
 		webView = (WebView) findViewById(R.id.webView);
-		//setContentView(webView);
-		//webView.setWebViewClient(new WebViewClient() {
-		//	public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-		//	}
-		//});
 		webView.setWebViewClient(new MyBrowser());
 		webView.getSettings().setLoadsImagesAutomatically(true);
 		webView.getSettings().setJavaScriptEnabled(true);
 		webView.loadUrl("http://ec2-54-76-99-61.eu-west-1.compute.amazonaws.com/zettelwirtschaft/index.html");
+	}
 
-
+	@Override
+	@UiThread
+	public void onFinishedUploading() {
+		Toast.makeText(this, "Bild hochgeladen", Toast.LENGTH_LONG).show();
 	}
 
 	private class MyBrowser extends WebViewClient {
@@ -70,7 +72,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	@OptionsItem(R.id.action_camera)
 	public void onClickCamera() {
 		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		File f = new File(android.os.Environment
@@ -79,9 +80,7 @@ public class MainActivity extends Activity {
 		startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
 	}
 
-	@OptionsItem(R.id.action_picture_from_gallery)
 	public void onClickOnGallery() {
-		//TODO get picture from gallery
 		Intent intent = new Intent();
 		intent.setType("image/*");
 		intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -100,7 +99,7 @@ public class MainActivity extends Activity {
 
 				Bitmap bitmap = BitmapFactory.decodeStream(stream);
 				stream.close();
-				networkManager.uploadImage(bitmap);
+				networkManager.uploadImage(bitmap, this);
 			}
 			catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -128,7 +127,7 @@ public class MainActivity extends Activity {
 
 				bm = BitmapFactory.decodeFile(f.getAbsolutePath(),
 											  btmapOptions);
-				networkManager.uploadImage(bm);
+				networkManager.uploadImage(bm, this);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -144,4 +143,22 @@ public class MainActivity extends Activity {
 		return cursor.getString(column_index);
 	}
 
+	private class DrawerItemClickListener implements android.widget.AdapterView.OnItemClickListener {
+		@Override
+		public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+			selectItem(i);
+		}
+	}
+
+	private void selectItem(int i) {
+		if ( i == 0) {
+			onClickCamera();
+		} else if ( i == 1) {
+			onClickOnGallery();
+		} else if ( i == 2) {
+			webView.reload();
+		}
+		mDrawerList.setItemChecked(i, false);
+		mDrawerLayout.closeDrawer(mDrawerList);
+	}
 }

@@ -32,9 +32,9 @@ public class NetworkManager {
 	}
 
 	@Background
-	public void uploadImage(Bitmap bitmap) {
+	public void uploadImage(Bitmap bitmap, OnFinishedUploading listener) {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream);
+		bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream);
 		byte[] byte_arr = stream.toByteArray();
 		String image_str = Base64.encodeToString(byte_arr, Base64.DEFAULT);
 		ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
@@ -55,5 +55,6 @@ public class NetworkManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		listener.onFinishedUploading();
 	}
 }

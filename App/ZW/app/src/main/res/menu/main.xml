@@ -3,13 +3,5 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="de.mathrandom.zw.app.MainActivity" >
 
-	<item android:id="@+id/action_camera"
-		  android:title="Bild aus Kamera"
-		  android:orderInCategory="100"
-		  app:showAsAction="ifRoom"/>
 
-	<item android:id="@+id/action_picture_from_gallery"
-		  android:title="Bild aus Gallery"
-		  android:orderInCategory="1001"
-		  app:showAsAction="ifRoom" />
 </menu>
