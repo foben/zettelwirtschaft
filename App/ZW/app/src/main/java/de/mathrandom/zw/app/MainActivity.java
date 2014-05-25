@@ -40,7 +40,6 @@ public class MainActivity extends Activity implements OnFinishedUploading {
 	NetworkManager networkManager;
 	WebView webView;
 
-
 	@AfterViews
 	public void setWebView() {
 		mNavigationTitles = getResources().getStringArray(R.array.nav_drawer_items);
